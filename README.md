@@ -142,8 +142,7 @@ If your app uses this plugin as a dependency:
 
 ```yaml
 dependencies:
-  zetrix_vc_flutter:
-    path: ../zetrix_vc_flutter
+  zetrix_vc_flutter: <VERSION>
 ```
 
 ---
