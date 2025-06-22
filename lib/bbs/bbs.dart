@@ -8,13 +8,27 @@ import 'package:zetrix_vc_flutter/bbs/load_library.dart';
 import 'package:zetrix_vc_flutter/src/models/vc/proof.dart';
 import 'package:zetrix_vc_flutter/src/utils/encryption_utils.dart';
 import 'package:zetrix_vc_flutter/src/utils/generator_utils.dart';
+import '../src/utils/tools.dart';
 import 'bbs_flutter.dart';
 import '../src/models/bbs/proof_message.dart';
 
+/// A class that provides functionality to create BBS+ proofs and interact
+/// with the BBS+ library via FFI (Foreign Function Interface).
+///
+/// The `Bbs` class acts as a wrapper for interacting with the native BBS+ library,
+/// providing convenient methods for cryptographic operations such as proof generation.
 class Bbs {
+  /// FFI bindings for interacting with the native BBS+ library.
   final bbs = BbsBindings(loadBbsLib());
+
+  /// An instance of [EncryptionUtils] for utility methods related to encryption.
   EncryptionUtils encryption = EncryptionUtils();
 
+  /// Creates a BBS+ proof using the BLS public key, nonce, signature, and messages.
+  ///
+  /// This method leverages FFI calls to interact with the native BBS+ library for proof generation.
+  /// - Converts the provided BLS public key to a BBS public key before proceeding with the proof creation.
+  /// - Handles the allocation and deallocation of required memory during the FFI calls.
   Future<Uint8List> blsCreateProofFFI({
     required Uint8List publicKey,
     required Uint8List nonce,
@@ -23,13 +37,13 @@ class Bbs {
   }) {
     // Convert publickey bls to bbs
     final bbsPublicKey = blsPublicToBbsPublicKey(publicKey, messages.length);
-    print('bbsPublicKey length = ${bbsPublicKey.length}');
+    Tools.logDebug('bbsPublicKey length = ${bbsPublicKey.length}');
 
-    print('BBS public key (base64): ${base64.encode(bbsPublicKey)}');
+    Tools.logDebug('BBS public key (base64): ${base64.encode(bbsPublicKey)}');
 
     final err1 = calloc<ExternError>();
     final handle = bbs.bbsCreateProofContextInit(err1);
-    print('handle init: $handle');
+    Tools.logDebug('handle init: $handle');
     if (handle == 0) {
       throw Exception('Unable to create proof context');
     }
@@ -44,7 +58,7 @@ class Bbs {
       publicKeyPtr.ref,
       err2,
     );
-    print('result bbsCreateProofContextSetPublicKey: $result');
+    Tools.logDebug('result bbsCreateProofContextSetPublicKey: $result');
 
     calloc.free(publicKeyPtr.ref.data);
     calloc.free(publicKeyPtr);
@@ -63,7 +77,7 @@ class Bbs {
       noncePtr.ref,
       err3,
     );
-    print('result bbsCreateProofContextSetNonceBytes: $result1');
+    Tools.logDebug('result bbsCreateProofContextSetNonceBytes: $result1');
 
     calloc.free(noncePtr.ref.data);
     calloc.free(noncePtr);
@@ -82,7 +96,7 @@ class Bbs {
       sigPtr.ref,
       err4,
     );
-    print('result bbsCreateProofContextSetSignature: $result2');
+    Tools.logDebug('result bbsCreateProofContextSetSignature: $result2');
 
     calloc.free(sigPtr.ref.data);
     calloc.free(sigPtr);
@@ -120,7 +134,7 @@ class Bbs {
     calloc.free(err5);
 
     final proofSize = bbs.bbsCreateProofContextSize(handle);
-    print('proofSize: $proofSize');
+    Tools.logDebug('proofSize: $proofSize');
     if (proofSize <= 0) {
       throw Exception('Invalid proof size from bbs_create_proof_size()');
     }
@@ -129,7 +143,7 @@ class Bbs {
     final err6 = calloc<ExternError>();
 
     final result4 = bbs.bbsCreateProofContextFinish(handle, proofPtr, err6);
-    print('result bbsCreateProofContextFinish: $result4');
+    Tools.logDebug('result bbsCreateProofContextFinish: $result4');
     if (result4 != 0) {
       calloc.free(proofPtr);
       throwIfError(result4, err6, 'Unable to create proof');
@@ -144,6 +158,10 @@ class Bbs {
     return Future.value(Uint8List.fromList(proofBytes));
   }
 
+  /// Creates a BBS+ proof using a BLS public key, nonce, signature, and a list of proof messages.
+  ///
+  /// This function utilizes FFI calls to interact with the native BBS+ library to generate a cryptographic proof.
+  /// Given the BLS public key, the function first converts it to a BBS public key before beginning the proof creation process.
   Future<Uint8List> blsCreateProofMC({
     required Uint8List blsPublicKey,
     required Uint8List nonce,
@@ -156,13 +174,13 @@ class Bbs {
       messages: messages.length,
     );
 
-    print('📏 bbsPublicKey.length = ${bbsPublicKey.length}');
+    Tools.logDebug('📏 bbsPublicKey.length = ${bbsPublicKey.length}');
 
-    print('BBS public key (base64): ${base64.encode(bbsPublicKey)}');
+    Tools.logDebug('BBS public key (base64): ${base64.encode(bbsPublicKey)}');
 
     final err1 = calloc<ExternError>();
     final handle = bbs.bbsCreateProofContextInit(err1);
-    print('handle init: $handle');
+    Tools.logDebug('handle init: $handle');
     if (handle == 0) {
       throw Exception('Unable to create proof context');
     }
@@ -177,7 +195,7 @@ class Bbs {
       publicKeyPtr.ref,
       err2,
     );
-    print('result bbsCreateProofContextSetPublicKey: $result');
+    Tools.logDebug('result bbsCreateProofContextSetPublicKey: $result');
 
     calloc.free(publicKeyPtr.ref.data);
     calloc.free(publicKeyPtr);
@@ -196,7 +214,7 @@ class Bbs {
       noncePtr.ref,
       err3,
     );
-    print('result bbsCreateProofContextSetNonceBytes: $result1');
+    Tools.logDebug('result bbsCreateProofContextSetNonceBytes: $result1');
 
     calloc.free(noncePtr.ref.data);
     calloc.free(noncePtr);
@@ -215,7 +233,7 @@ class Bbs {
       sigPtr.ref,
       err4,
     );
-    print('result bbsCreateProofContextSetSignature: $result2');
+    Tools.logDebug('result bbsCreateProofContextSetSignature: $result2');
 
     calloc.free(sigPtr.ref.data);
     calloc.free(sigPtr);
@@ -253,7 +271,7 @@ class Bbs {
     calloc.free(err5);
 
     final proofSize = bbs.bbsCreateProofContextSize(handle);
-    print('proofSize: $proofSize');
+    Tools.logDebug('proofSize: $proofSize');
     if (proofSize <= 0) {
       throw Exception('Invalid proof size from bbs_create_proof_size()');
     }
@@ -262,7 +280,7 @@ class Bbs {
     final err6 = calloc<ExternError>();
 
     final result4 = bbs.bbsCreateProofContextFinish(handle, proofPtr, err6);
-    print('result bbsCreateProofContextFinish: $result4');
+    Tools.logDebug('result bbsCreateProofContextFinish: $result4');
     if (result4 != 0) {
       calloc.free(proofPtr);
       throwIfError(result4, err6, 'Unable to create proof');
@@ -277,6 +295,11 @@ class Bbs {
     return Future.value(Uint8List.fromList(proofBytes));
   }
 
+  /// Creates a selective disclosure proof using a BLS public key, nonce, signature, and a set of messages.
+  ///
+  /// Selective disclosure proofs allow for revealing only specific messages while keeping others hidden.
+  /// This function prepares the input messages accordingly (marking them as revealed or hidden) and
+  /// generates a cryptographic proof via `blsCreateProofFFI`.
   Future<String> createSelectiveDisclosureProofBlsFFI(
     Uint8List publicKey,
     Uint8List nonce,
@@ -311,6 +334,11 @@ class Bbs {
     });
   }
 
+  /// Creates a selective disclosure proof using a BLS public key, nonce, signature, and a set of messages.
+  ///
+  /// This function enables selective disclosure by allowing specific messages to be "revealed" in the proof
+  /// while keeping the rest "hidden." It prepares messages as `ProofMessage` objects marked as revealed or hidden,
+  /// generates the proof using `BbsFlutter.blsCreateProof`, and returns a Base64 URL-encoded proof string.
   Future<String> createSelectiveDisclosureProofBlsMC(
     Uint8List publicKey,
     Uint8List nonce,
@@ -345,6 +373,12 @@ class Bbs {
     });
   }
 
+  /// Converts a BLS public key into a BBS public key.
+  ///
+  /// BLS public keys are message-agnostic, while BBS public keys are message-specific.
+  /// This function generates a BBS public key from a BLS public key for a given number of messages.
+  /// It leverages an FFI call to the native BBS+ library for the conversion, ensuring compatibility
+  /// with the BBS+ cryptographic protocols.
   Uint8List blsPublicToBbsPublicKey(Uint8List blsPublicKey, int messageCount) {
     final seedPtr = ByteArrayHelper.allocate(blsPublicKey);
     final out = calloc<ByteBuffer>();
@@ -374,6 +408,11 @@ class Bbs {
     return Uint8List.fromList(bbsKey);
   }
 
+  /// Decodes a Base64 URL-encoded BBS+ signature back into its original binary form.
+  ///
+  /// The BBS+ signature string often includes a leading character (e.g., `u`) for formatting purposes.
+  /// This function removes the leading character, normalizes the string as needed, and decodes it
+  /// back into a [Uint8List] representation of the BBS+ signature.
   Uint8List decodeBbsSignature(String bbsSignature) {
     final base64Body = bbsSignature.substring(1); // remove leading "u"
     final normalized =
@@ -381,7 +420,11 @@ class Bbs {
     return base64Url.decode(normalized);
   }
 
-  // Main function
+  /// Generates a BbsBls signature proof using FFI for selective message disclosure.
+  ///
+  /// The function creates a cryptographic proof using a BBS+ signature and public key.
+  /// Messages specified by the `revealIndex` list are revealed, while others remain hidden.
+  /// A random nonce is generated to ensure proof uniqueness.
   Future<Proof> setBbsBlsProofFFI(
     List<Uint8List> messages,
     Uint8List publicKey,
@@ -424,6 +467,11 @@ class Bbs {
     return proof;
   }
 
+  /// Generates a BbsBls signature proof using the BbsFlutter library for selective message disclosure.
+  ///
+  /// Similar to [setBbsBlsProofFFI], this function creates cryptographic proofs using a BBS+ signature
+  /// and public key. Messages specified in the `revealIndex` list are publicly revealed in the proof,
+  /// while others remain hidden. A random nonce is generated to ensure uniqueness.
   Future<Proof> setBbsBlsProofMC(
     List<Uint8List> messages,
     Uint8List publicKey,
@@ -466,6 +514,11 @@ class Bbs {
     return proof;
   }
 
+  /// Throws an exception if a BBS+ library operation results in an error.
+  ///
+  /// This utility function is used to check the result of FFI calls to the BBS+ library.
+  /// If the operation fails (i.e., `result` is non-zero), the function reads the error message from the
+  /// provided [ExternError] pointer and throws an [Exception] with the appropriate error description.
   void throwIfError(int result, Pointer<ExternError> err, String label) {
     if (result != 0) {
       final msg = err.ref.message == nullptr

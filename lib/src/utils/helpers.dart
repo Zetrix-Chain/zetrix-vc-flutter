@@ -1,9 +1,14 @@
 import 'dart:math';
-
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'tools.dart';
 
+/// A utility class that provides helper methods for various SDK-related operations.
+///
+/// The `Helpers` class includes methods for conversions between gas and micro-gas (ugas),
+/// handling numbers with decimal places, and extracting minimal verifiable presentations.
+///
 class Helpers {
+  /// Converts a gas amount represented as a [String] to its equivalent micro-gas (ugas) value.
   static String gasToUGas(String gas) {
     if (!Tools.isAvailableZTX(gas)) {
       return '';
@@ -12,6 +17,7 @@ class Helpers {
     return (num.parse(gas) * oneMo).toString();
   }
 
+  /// Converts a micro-gas (ugas) value represented as a [String] to its equivalent gas value.
   static String ugasToGas(String ugas) {
     if (!Tools.isAvailableValue(ugas)) {
       return '';
@@ -20,6 +26,7 @@ class Helpers {
     return (num.parse(ugas) / oneMo).toString();
   }
 
+  /// Multiplies the given [amount] with 10 raised to the power of [decimal].
   static String unitWithDecimals(String amount, String decimal) {
     final regex = RegExp(r"^[0-9]+$");
 
@@ -34,6 +41,7 @@ class Helpers {
     return '';
   }
 
+  /// Extracts a minimal verifiable presentation (VP) from the given [vpJson].
   static String extractMinimalVp(String vpJson) {
     final fullVp = jsonDecode(vpJson) as Map<String, dynamic>;
 

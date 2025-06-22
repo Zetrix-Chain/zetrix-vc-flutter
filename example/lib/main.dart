@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:zetrix_vc_flutter/zetrix_vc_flutter.dart';
 import 'qr_code.dart';
+
+var logger = Logger(printer: PrettyPrinter());
 
 void main() {
   runApp(const MyApp());
@@ -100,7 +103,9 @@ class _BbsProofTestWidgetState extends State<BbsProofTestWidget> {
     );
 
     if (vp is Success<String> && vp.data != null) {
-      print(vp.data);
+      logger.d(vp.data);
+      if (!mounted) return;
+
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => QrCodeScreen(data: vp.data!)),
@@ -121,8 +126,8 @@ class _BbsProofTestWidgetState extends State<BbsProofTestWidget> {
           onPressed: () async {
             final seed = Uint8List(32); // Or use Random()
             final keyPair = await BbsFlutter.generateBls12381G1Key(seed);
-            print('Public Key: ${base64.encode(keyPair['publicKey']!)}');
-            print('Secret Key: ${base64.encode(keyPair['secretKey']!)}');
+            logger.d('Public Key: ${base64.encode(keyPair['publicKey']!)}');
+            logger.d('Secret Key: ${base64.encode(keyPair['secretKey']!)}');
           },
           child: const Text("Generate BLS12381G1 Key"),
         ),

@@ -9,8 +9,12 @@ import 'dart:convert';
 import 'package:zetrix_vc_flutter/src/models/account/create_account.dart';
 import 'package:zetrix_vc_flutter/src/models/transaction/sign_message.dart';
 import 'package:zetrix_vc_flutter/src/models/transaction/sign_blob.dart';
+import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 
+/// A utility class designed for encryption-related operations,
+/// such as key pair generation, public/private key manipulation, and address generation.
 class EncryptionUtils {
+  /// Generates a cryptographic key pair consisting of a private key, public key, address, and DID.
   Future<CreateAccount> generateKeyPair() async {
     Uint8List rawPrivateKey = PineNaClUtils.randombytes(32);
 
@@ -28,6 +32,7 @@ class EncryptionUtils {
     return keypair;
   }
 
+  /// Generates the encryption public key associated with the input [privateKey].
   Future<String> getEncPublicKey(String privateKey) async {
     Uint8List rawPriv = parsePrivateKey(privateKey);
 
@@ -36,9 +41,10 @@ class EncryptionUtils {
     return pubKey;
   }
 
-  String generatePrivateKey(rawPrivKey) {
+  /// Generates an encoded private key from a [Uint8List] raw private key.
+  String generatePrivateKey(Uint8List rawPrivKey) {
     Uint8List prefixBytes = Uint8List.fromList([0xda, 0x37, 0x9f, 0x1]);
-    // print('raw priv key: $randBytes');
+    // Tools.logDebug('raw priv key: $randBytes');
     BytesBuilder byteBuilder = BytesBuilder(copy: true);
     //Add prefixBytes bytes
     byteBuilder.add(prefixBytes);
@@ -60,6 +66,7 @@ class EncryptionUtils {
     return privateKey;
   }
 
+  /// Generates an encoded public key from a given [seed] (raw private key).
   Future<String> generatePublicKey(Uint8List seed) async {
     var algorithm = crypto.Ed25519();
     var rawKeypair = await algorithm.newKeyPairFromSeed(seed);
@@ -84,6 +91,7 @@ class EncryptionUtils {
     return pubKeyString;
   }
 
+  /// Generates the raw public key (unencoded) associated with the given [seed].
   Future<String> generatePublicKeyRaw(Uint8List seed) async {
     var algorithm = crypto.Ed25519();
     var rawKeypair = await algorithm.newKeyPairFromSeed(seed);
@@ -101,6 +109,7 @@ class EncryptionUtils {
     return rawPubKeyString;
   }
 
+  /// Generates the address associated with a given encoded [encPublicKey].
   String getAddress(String encPublicKey) {
     Uint8List rawpubKey = parsePublicKey(encPublicKey);
 
@@ -126,14 +135,27 @@ class EncryptionUtils {
     return address;
   }
 
+  /// Generates a decentralized identifier (DID) from a given raw private key.
+  ///
+  /// The method generates a DID based on the `Zetrix Identifier (zid)` format by
+  /// first deriving the raw public key from the provided raw private key and then
+  /// formatting it as `"did:zid:<rawPublicKey>"`.
   Future<String> generateDid(Uint8List rawPrivateKey) async {
     final raw = await generatePublicKeyRaw(rawPrivateKey);
     return "did:zid:$raw";
   }
 
-  bool checkEncPrivateKey(encPrivateKey) {
+  /// Checks if the encoded private key is valid.
+  ///
+  /// This method validates the encoded private key by performing the
+  /// following checks:
+  /// - Ensures the key is a non-empty [String].
+  /// - Decodes the key using Base58 encoding.
+  /// - Verifies specific byte values at designated positions (e.g., prefix bytes and compression bit).
+  /// - Confirms the checksum is valid by recalculating it from the decoded data.
+  bool checkEncPrivateKey(String encPrivateKey) {
     try {
-      if (encPrivateKey.isEmpty || (encPrivateKey is! String)) {
+      if (encPrivateKey.isEmpty) {
         return false;
       }
 
@@ -168,9 +190,16 @@ class EncryptionUtils {
     }
   }
 
-  bool checkEncPublicKey(encPublicKey) {
+  /// Validates the encoded public key.
+  ///
+  /// This method performs validation on the provided encoded public key string by:
+  /// - Ensuring the key is a non-empty [String].
+  /// - Decoding the key using hexadecimal decoding.
+  /// - Verifying specific byte values in the decoded public key (e.g., prefix bytes and type).
+  /// - Checking the checksum at the end of the public key.
+  bool checkEncPublicKey(String encPublicKey) {
     try {
-      if (encPublicKey.isEmpty || (encPublicKey is! String)) {
+      if (encPublicKey.isEmpty) {
         return false;
       }
 
@@ -201,9 +230,16 @@ class EncryptionUtils {
     }
   }
 
-  bool checkAddress(address) {
+  /// Validates the encoded address.
+  ///
+  /// This method checks whether the given encoded address is valid by:
+  /// - Ensuring the input is a non-empty string.
+  /// - Decoding the address using Base58 decoding.
+  /// - Verifying the prefix bytes and length of the decoded address.
+  /// - Validating the checksum to ensure integrity.
+  bool checkAddress(String address) {
     try {
-      if (address.isEmpty || (address is! String)) {
+      if (address.isEmpty) {
         return false;
       }
 
@@ -234,7 +270,12 @@ class EncryptionUtils {
     }
   }
 
-  Uint8List parsePrivateKey(encPrivateKey) {
+  /// Parses and validates an encoded private key.
+  ///
+  /// This function decodes an encoded private key using Base58 and performs multiple
+  /// validation checks, including header bytes, type, compression bit, and checksum integrity.
+  /// If the validation passes, it extracts and returns the raw private key bytes.
+  Uint8List parsePrivateKey(String encPrivateKey) {
     Uint8List rawByte = base58.decode(encPrivateKey);
 
     if (rawByte[0] != 0xda || rawByte[1] != 0x37 || rawByte[2] != 0x9f) {
@@ -264,7 +305,12 @@ class EncryptionUtils {
     return rawPriv;
   }
 
-  Uint8List parsePublicKey(encPublicKey) {
+  /// Parses and validates an encoded public key.
+  ///
+  /// This function decodes an encoded public key and performs multiple
+  /// validation checks, including header bytes, type, and checksum integrity.
+  /// If the validation is successful, it extracts and returns the raw public key bytes.
+  Uint8List parsePublicKey(String encPublicKey) {
     var rawBytes = hex.decode(encPublicKey);
     Uint8List publicKeyBytes = Uint8List.fromList(rawBytes);
     if (publicKeyBytes[0] != 0xb0) {
@@ -287,7 +333,12 @@ class EncryptionUtils {
     return rawPub;
   }
 
-  Future<SignBlob> signBlob(msg, privateKey) async {
+  /// Signs a message with the provided private key.
+  ///
+  /// This function takes a message and an encoded private key, performs validation, and then uses
+  /// the Ed25519 cryptographic algorithm to sign the message. The resulting signature and the
+  /// corresponding public key are returned in a `SignBlob` object.
+  Future<SignBlob> signBlob(String msg, String privateKey) async {
     if (msg.isEmpty || privateKey.isEmpty) {
       throw Exception('require message or encPrivateKey');
     }
@@ -314,7 +365,12 @@ class EncryptionUtils {
     return resp;
   }
 
-  Future<SignMessage> signMessage(msg, privateKey) async {
+  /// Signs a message with the provided private key.
+  ///
+  /// This function takes a message and an encoded private key, performs validation,
+  /// and uses the Ed25519 cryptographic algorithm to generate a signature for the message.
+  /// It returns a `SignMessage` object containing the encoded public key and the generated signature.
+  Future<SignMessage> signMessage(String msg, String privateKey) async {
     if (msg.isEmpty || privateKey.isEmpty) {
       throw Exception('require message or encPrivateKey');
     }
@@ -341,7 +397,13 @@ class EncryptionUtils {
     return resp;
   }
 
-  Future<bool> verify(signatureData, msg, encPublicKey) async {
+  /// Verifies a message's signature using the provided public key.
+  ///
+  /// This function takes the signature, message, and an encoded public key, and validates
+  /// the signature using the Ed25519 cryptographic algorithm. It returns a boolean
+  /// indicating whether the signature is valid.
+  Future<bool> verify(
+      List<int> signatureData, List<int> msg, String encPublicKey) async {
     Uint8List bytes = parsePublicKey(encPublicKey);
 
     final algorithm = crypto.Ed25519();
@@ -359,7 +421,11 @@ class EncryptionUtils {
     return isValid;
   }
 
-  SignedMessage naclSign(privateKey, message) {
+  /// Signs a message using the provided private key.
+  ///
+  /// This function uses the NaCl cryptographic library to sign a message
+  /// with the given private key and returns the signed message object.
+  SignedMessage naclSign(String privateKey, Uint8List message) {
     Uint8List rawPriv = parsePrivateKey(privateKey);
 
     // Generate a new random signing key
@@ -370,13 +436,24 @@ class EncryptionUtils {
     return signed;
   }
 
-  bool naclVerify(signature, message, encPublicKey) {
+  /// Verifies a message and its signature using the provided public key.
+  ///
+  /// This function uses the NaCl cryptographic library to verify the given
+  /// signature, message, and encoded public key. It returns a boolean indicating
+  /// whether the verification succeeded.
+  bool naclVerify(
+      SignatureBase signature, Uint8List message, String encPublicKey) {
     Uint8List pubByte = parsePublicKey(encPublicKey);
     final verifyKey = VerifyKey(pubByte);
 
     return verifyKey.verify(signature: signature, message: message);
   }
 
+  /// Verifies a JWS (JSON Web Signature) using EDDSA and the provided public key.
+  ///
+  /// This function takes a JWS string and a public key (in hexadecimal format),
+  /// splits the JWS into its three parts (header, payload, and signature),
+  /// and verifies the EDDSA signature based on the decoded message and public key.
   Future<bool> verifyEddsaSignature(String jws, String publicKeyHex) async {
     final parts = jws.split('.');
     if (parts.length != 3) throw FormatException("Invalid JWS");
@@ -385,11 +462,16 @@ class EncryptionUtils {
 
     final signatureBytes = base64Url.decode(formatDecode(parts[2]));
 
-    print('Signature length: ${signatureBytes.length}');
+    Tools.logDebug('Signature length: ${signatureBytes.length}');
 
     return verify(signatureBytes, msgBytes, publicKeyHex);
   }
 
+  /// Decodes a Base64Url string to a Base64-compatible format.
+  ///
+  /// This function converts a Base64Url-encoded string into a standard Base64
+  /// format string by replacing URL-safe characters (`-` and `_`) with
+  /// Base64 characters (`+` and `/`) and padding it appropriately for valid decoding.
   String formatDecode(String arg) {
     String s = arg;
     s = s.replaceAll('-', '+').replaceAll('_', '/');
@@ -411,6 +493,10 @@ class EncryptionUtils {
     return s;
   }
 
+  /// Encodes a Verifiable Presentation (VP) into a Base64 string.
+  ///
+  /// This function takes a [VerifiablePresentation] (VP), converts it to a JSON
+  /// structure, minifies the resulting JSON string, and encodes it into a Base64 string.
   String encodeVpToBase64(VerifiablePresentation vp) {
     // Convert to JSON map
     final jsonMap = vp.toJson();

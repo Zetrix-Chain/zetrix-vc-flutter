@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zetrix_vc_flutter/src/models/vc/verifiable_credential.dart';
 import 'package:zetrix_vc_flutter/src/services/vp_service.dart';
 import 'package:zetrix_vc_flutter/src/models/sdk_result.dart';
+import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 
 void main() {
   ZetrixVpService zetrixVpService = ZetrixVpService();
@@ -72,13 +73,13 @@ void main() {
         'b001a0ef91714f1b84317d395118706796e38f012c48893f5063ebd7db2d9406c9ffe3b775cb');
 
     if (vp is Success<String> && vp.data != null) {
-      print('vp is: ${vp.data}');
+      Tools.logDebug('vp is: ${vp.data}');
       // String? json = vp.data;
       // final input = utf8.encode(vp.data!);
       // final compressed = GZipEncoder().encode(input);
-      // print(base64Encode(compressed!));
+      // Tools.logDebug(base64Encode(compressed!));
 
-      // print('compressed byte: $compressed');
+      // Tools.logDebug('compressed byte: $compressed');
     }
 
     expect(vp, isNotNull);
@@ -150,13 +151,7 @@ void main() {
         'b001a0ef91714f1b84317d395118706796e38f012c48893f5063ebd7db2d9406c9ffe3b775cb');
 
     if (vp is Success<String> && vp.data != null) {
-      print('vp is: ${vp.data}');
-      // String? json = vp.data;
-      // final input = utf8.encode(vp.data!);
-      // final compressed = GZipEncoder().encode(input);
-      // print(base64Encode(compressed!));
-
-      // print('compressed byte: $compressed');
+      Tools.logDebug('vp is: ${vp.data}');
     }
 
     expect(vp, isNotNull);

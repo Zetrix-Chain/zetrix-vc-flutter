@@ -9,7 +9,7 @@ import 'package:zetrix_vc_flutter/bbs/bbs_ffi_bindings.dart';
 import 'package:zetrix_vc_flutter/bbs/bbs_ffi_types.dart';
 import 'package:zetrix_vc_flutter/bbs/load_library.dart';
 import 'package:zetrix_vc_flutter/src/models/bbs/proof_message.dart';
-import 'package:zetrix_vc_flutter/src/utils/encryption_utils.dart';
+import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 
 void main() {
   final bbs = BbsBindings(loadBbsLib());
@@ -31,13 +31,13 @@ void main() {
     final publicKey = pubKeyPtr.ref.toUint8List();
     final secretKey = secKeyPtr.ref.toUint8List();
 
-    print("Public Key: $publicKey");
-    print("Secret Key: $secretKey");
+    Tools.logDebug("Public Key: $publicKey");
+    Tools.logDebug("Secret Key: $secretKey");
 
     final pubKeyBase58 = base58.encode(publicKey);
-    print('Public Key (base58): $pubKeyBase58');
+    Tools.logDebug('Public Key (base58): $pubKeyBase58');
     final secKeyBase58 = base58.encode(secretKey);
-    print('Secret Key (base58): $secKeyBase58');
+    Tools.logDebug('Secret Key (base58): $secKeyBase58');
 
     // Cleanup
     calloc.free(seed.data);
@@ -53,7 +53,7 @@ void main() {
     final bbsPubkey = bbs.blsPublicToBbsPublicKey(
         base58.decode(publicKeyMultiBasePlain.substring(1)), 2);
 
-    print('bbsPubKey: $bbsPubkey');
+    Tools.logDebug('bbsPubKey: $bbsPubkey');
     expect(bbsPubkey, isNotEmpty);
   });
 
@@ -296,14 +296,14 @@ void main() {
         messages: messages,
       );
 
-      print('✅ Proof generated: ${proof.length} bytes');
-      print('✅ Proof bytes: $proof');
-      print(
+      Tools.logDebug('✅ Proof generated: ${proof.length} bytes');
+      Tools.logDebug('✅ Proof bytes: $proof');
+      Tools.logDebug(
           'Proof (hex): ${proof.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}');
       expect(proof, isA<Uint8List>());
     } catch (e, stack) {
-      print('❌ Error during proof generation: $e');
-      print('📌 Stacktrace:\n$stack');
+      Tools.logDebug('❌ Error during proof generation: $e');
+      Tools.logDebug('📌 Stacktrace:\n$stack');
       fail('Proof generation failed');
     }
   });

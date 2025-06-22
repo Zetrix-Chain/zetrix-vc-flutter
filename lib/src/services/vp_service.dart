@@ -5,9 +5,17 @@ import 'package:zetrix_vc_flutter/src/models/vc/vc_constant.dart';
 import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 import 'package:zetrix_vc_flutter/zetrix_vc_flutter.dart';
 
+/// A service class for creating Verifiable Presentations (VP) using Zetrix SDK.
+///
+/// This class provides methods to create a VP using either FFI or multi-credential-based strategies.
 class ZetrixVpService {
+  /// A utility for encryption-related tasks, used to encode VP to Base64.
   EncryptionUtils encryption = EncryptionUtils();
 
+  /// Creates a Verifiable Presentation (VP) via FFI (Foreign Function Interface).
+  ///
+  /// This function generates a VP from the given [VerifiableCredential], selectively disclosing
+  /// specific attributes (`revealAttribute`) when BBS+ proofs are required.
   Future<ZetrixSDKResult<String>> createVpFFI(
       VerifiableCredential vc,
       List<String>? revealAttribute,
@@ -92,10 +100,15 @@ class ZetrixVpService {
 
     final vcList = <VerifiableCredential>[vc];
     vp.verifiableCredential = vcList;
-    print('vp: $vp');
+    Tools.logDebug('vp: $vp');
     return ZetrixSDKResult.success(data: encryption.encodeVpToBase64(vp));
   }
 
+  /// Creates a Verifiable Presentation (VP) for multiple credential scenarios.
+  ///
+  /// This method generates a Verifiable Presentation (VP) using the [VerifiableCredential] provided,
+  /// allowing selective disclosure of specific attributes (`revealAttribute`) when required.
+  /// It leverages the BBS+ proof mechanism for privacy-preserving credentials.
   Future<ZetrixSDKResult<String>> createVpMC(
       VerifiableCredential vc,
       List<String>? revealAttribute,

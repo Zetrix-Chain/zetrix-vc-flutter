@@ -2,6 +2,7 @@
 
 ### Update
 - Upgrade package dependency
+- Update documentation
 
 ## 0.0.2
 

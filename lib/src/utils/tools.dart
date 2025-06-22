@@ -1,16 +1,37 @@
+import 'package:logger/logger.dart';
+
+/// Utility class that provides helper methods for common operations,
+/// such as string validation, map manipulation, and list handling.
+///
+/// The `Tools` class contains static methods for operations that don't
+/// require instance-level state.
 class Tools {
+  /// Checks whether the given [str] is null or an empty string.
+  ///
+  /// Returns `true` if the string is null or empty, otherwise returns `false`.
   static bool isEmptyString(String? str) {
     return str == null || str.isEmpty;
   }
 
+  /// Checks whether the given object [obj] is null or an empty string.
+  ///
+  /// Returns `true` for `null` or empty string values, otherwise returns `false`.
   static bool isEmptyObject(Object? obj) {
     return obj == null || obj == "";
   }
 
+  /// Checks whether the given list [obj] is null or has no elements.
+  ///
+  /// Returns `true` if the list is null or empty, otherwise returns `false`.
   static bool isEmptyList(List<Object>? obj) {
     return obj == null || obj.isEmpty;
   }
 
+  /// Validates whether the provided [gas] value is a non-empty string and
+  /// falls within a valid range as defined by the pattern.
+  ///
+  /// The [gas] must match the regex pattern and range between 0 and
+  /// [double.maxFinite]. Returns `true` if the value is valid, otherwise `false`.
   static bool isAvailableZTX(String gas) {
     if (isEmptyString(gas)) {
       return false;
@@ -21,6 +42,10 @@ class Tools {
         double.parse(gas) <= double.maxFinite);
   }
 
+  /// Validates whether the provided [ugas] value is a non-empty string and
+  /// falls within a specific numeric range.
+  ///
+  /// Returns `true` if the [ugas] value is valid, otherwise `false`.
   static bool isAvailableValue(String ugas) {
     if (isEmptyString(ugas)) {
       return false;
@@ -31,6 +56,9 @@ class Tools {
         double.parse(ugas) <= double.maxFinite);
   }
 
+  /// Checks whether all key-value pairs in a [params] map have non-null values.
+  ///
+  /// Returns `true` if all values are non-null, otherwise `false`.
   static bool validateParams(Map<String, dynamic> params) {
     bool validated = true;
 
@@ -43,6 +71,11 @@ class Tools {
     return validated;
   }
 
+  /// Flattens a nested [map] into a flat map where keys are represented
+  /// as dot-separated strings.
+  ///
+  /// [prefix] is used for nesting and is optional. This method converts
+  /// hierarchical structures into flat key-value pairs.
   Map<String, dynamic> flatten(Map<String, dynamic> map, [String prefix = '']) {
     final result = <String, dynamic>{};
     map.forEach((key, value) {
@@ -56,7 +89,9 @@ class Tools {
     return result;
   }
 
-  //Recursively flattens a nested map into a list of key-value strings.
+  /// Recursively flattens a nested [map] into a **list** of key-value strings.
+  ///
+  /// Keys in the map are concatenated with dot notation to represent nesting.
   static List<String> flattenMapToListString(Map<String, dynamic> map,
       [String prefix = '']) {
     final List<String> result = [];
@@ -74,7 +109,10 @@ class Tools {
     return result;
   }
 
-  // Recursively flattens a nested Map into a flat Map with dot-notated keys.
+  /// Recursively flattens a nested [map] into a **map** with dot-notated keys.
+  ///
+  /// Converts nested maps into single-level maps with keys denoting the
+  /// hierarchy using dot notation.
   static Map<String, dynamic> flattenMapToMap(Map<String, dynamic> map,
       [String prefix = '']) {
     final Map<String, dynamic> result = {};
@@ -92,7 +130,9 @@ class Tools {
     return result;
   }
 
-  //Inserts a value into a nested map using a dot-separated key.
+  /// Inserts a [value] into a nested [map] using a dot-separated [keyPath].
+  ///
+  /// If intermediate maps in the key path do not exist, they are created.
   static void insertNestedValue(
       Map<String, dynamic> map, String keyPath, dynamic value) {
     final keys = keyPath.split('.');
@@ -107,7 +147,10 @@ class Tools {
     current[keys.last] = value;
   }
 
-  //Retrieves a value from a nested map using a dot-separated key.
+  /// Retrieves a value from a nested [map] using a dot-separated [keyPath].
+  ///
+  /// Returns the desired value if it exists, or `null` if the key path
+  /// cannot be resolved.
   static dynamic getNestedValue(Map<String, dynamic> map, String keyPath) {
     final keys = keyPath.split('.');
     dynamic value = map;
@@ -121,5 +164,16 @@ class Tools {
     }
 
     return value;
+  }
+
+  /// Logs a debug message using the PrettyPrinter format.
+  ///
+  /// This method initializes a logger with a [PrettyPrinter] and logs the provided message
+  /// at the debug (`d`) level. It is primarily used for structured and readable debugging output.
+  static void logDebug(dynamic msg) {
+    var logger = Logger(
+      printer: PrettyPrinter(),
+    );
+    logger.d(msg);
   }
 }

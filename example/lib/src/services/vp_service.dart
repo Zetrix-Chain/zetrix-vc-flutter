@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:zetrix_vc_flutter/zetrix_vc_flutter.dart';
 
 class VpService {
@@ -72,17 +73,13 @@ class VpService {
     );
 
     final success = vp as Success<String>;
-    // print(success.data);
-    // if (vp is Success<String> && vp.data != null) {
-    print('vp is: ${vp.data}');
-    // String? json = vp.data;
-    // final input = utf8.encode(vp.data!);
-    // final compressed = GZipEncoder().encode(input);
-    // print(base64Encode(compressed!));
 
-    // print('compressed byte: $compressed');
+    if (kDebugMode) {
+      print(success.data);
+      print('vp is: ${vp.data}');
+    }
+
     vpString = vp.data!;
-    // }
 
     return vpString;
   }

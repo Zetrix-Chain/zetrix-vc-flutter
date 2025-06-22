@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 import 'package:zetrix_vc_flutter/zetrix_vc_flutter.dart';
 
 void main() {
@@ -12,7 +13,7 @@ void main() {
 
     if (resp is Success<CreateAccount> && resp.data != null) {
       finalResp = resp.data;
-      print(finalResp!.toJson().toString());
+      Tools.logDebug(finalResp!.toJson().toString());
       userAccount["address"] = finalResp.address!;
       userAccount["pubKey"] = finalResp.publicKey!;
       userAccount["privKey"] = finalResp.privateKey!;

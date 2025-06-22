@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pinenacl/ed25519.dart' as nacl;
 import "package:hex/hex.dart";
+import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 import 'package:zetrix_vc_flutter/zetrix_vc_flutter.dart';
 
 void main() {
@@ -21,7 +22,7 @@ void main() {
     String pubKey = await encryption.getEncPublicKey(
         'privBtnsbZV3Y3oG91QaeNhzNFpGbc9pmgdRnhKRs34ws2jg3gJqSMQo');
 
-    print(pubKey);
+    Tools.logDebug(pubKey);
 
     expect(pubKey,
         'b0013333135690d479c3068a3a2ea495097e53ba32e900062e95cfbaf1ab06bc85848d689603');
@@ -54,11 +55,11 @@ void main() {
 
     List<int> signatureByte = HEX.decode(
         '6bf8535d178011a1f361afdb21d43940010418caea83368ac48477c5c2302ede0436ca90599237b3adf02698b2f96348ea397e125909b9ed201d055ab241290d');
-    print(signatureByte);
+    Tools.logDebug(signatureByte);
     List<int> messageByte = utf8.encode('43556C34');
     bool valid = await keypair.verify(signatureByte, messageByte,
         'b0013333135690d479c3068a3a2ea495097e53ba32e900062e95cfbaf1ab06bc85848d689603');
-    print(valid);
+    Tools.logDebug(valid);
 
     expect(valid, true);
   });
@@ -70,7 +71,7 @@ void main() {
     nacl.SignedMessage sig = encryption.naclSign(
         'privBtnsbZV3Y3oG91QaeNhzNFpGbc9pmgdRnhKRs34ws2jg3gJqSMQo', msgByte);
 
-    print('Signature Hex: ${HEX.encode(sig.signature)}');
+    Tools.logDebug('Signature Hex: ${HEX.encode(sig.signature)}');
 
     bool valid = encryption.naclVerify(sig.signature, msgByte,
         'b0013333135690d479c3068a3a2ea495097e53ba32e900062e95cfbaf1ab06bc85848d689603');

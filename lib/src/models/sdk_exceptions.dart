@@ -4,46 +4,76 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../utils/tools.dart';
+
 part 'sdk_exceptions.freezed.dart';
+
+/// A sealed class that defines various SDK-specific exceptions for handling errors
+/// in Zetrix SDK. This includes exceptions related to HTTP requests, connectivity,
+/// server issues, and unexpected behavior.
+///
+/// Each exception provides a clean and reusable way to represent a specific error scenario.
 
 @freezed
 abstract class ZetrixSDKExceptions with _$ZetrixSDKExceptions {
+  /// Exception for cancelled requests.
   const factory ZetrixSDKExceptions.requestCancelled() = RequestCancelled;
 
+  /// Exception for unauthorized requests.
   const factory ZetrixSDKExceptions.unauthorisedRequest() = UnauthorisedRequest;
 
+  /// Exception for bad requests (400).
   const factory ZetrixSDKExceptions.badRequest() = BadRequest;
 
+  /// Exception for not found resources (404).
   const factory ZetrixSDKExceptions.notFound(String reason) = NotFound;
 
+  /// Exception for a method not allowed error (405).
   const factory ZetrixSDKExceptions.methodNotAllowed() = MethodNotAllowed;
 
+  /// Exception for an unacceptable response (406).
   const factory ZetrixSDKExceptions.notAcceptable() = NotAcceptable;
 
+  /// Exception for request timeout during connection or response.
   const factory ZetrixSDKExceptions.requestTimeout() = RequestTimeout;
 
+  /// Exception for timeout during a send operation.
   const factory ZetrixSDKExceptions.sendTimeout() = SendTimeout;
 
+  /// Exception for a conflict error (409).
   const factory ZetrixSDKExceptions.conflict() = Conflict;
 
+  /// Exception for internal server errors (500).
   const factory ZetrixSDKExceptions.internalServerError() = InternalServerError;
 
+  /// Exception for when a feature or method is not implemented (501).
   const factory ZetrixSDKExceptions.notImplemented() = NotImplemented;
 
+  /// Exception for when a service is unavailable (503).
   const factory ZetrixSDKExceptions.serviceUnavailable() = ServiceUnavailable;
 
+  /// Exception for network connectivity issues (e.g., no internet connection).
   const factory ZetrixSDKExceptions.noInternetConnection() =
       NoInternetConnection;
 
+  /// Exception for format errors (e.g., invalid input format).
   const factory ZetrixSDKExceptions.formatException() = FormatException;
 
+  /// Exception for when the SDK is unable to process the request for unknown reasons.
   const factory ZetrixSDKExceptions.unableToProcess() = UnableToProcess;
 
+  /// Custom exception for generic or default errors, providing a custom error message.
   const factory ZetrixSDKExceptions.defaultError(String error) = DefaultError;
 
+  /// Exception for unexpected errors or behavior.
   const factory ZetrixSDKExceptions.unexpectedError() = UnexpectedError;
 
-  static ZetrixSDKExceptions getDioException(error) {
+  /// Maps Dio-specific exceptions into meaningful SDK exceptions.
+  ///
+  /// This method processes a DioException error and converts it into
+  /// a corresponding [ZetrixSDKExceptions] instance based on the type of DioException
+  /// or the HTTP response code.
+  static ZetrixSDKExceptions getDioException(Object error) {
     if (error is Exception) {
       try {
         ZetrixSDKExceptions sdkExceptions;
@@ -117,9 +147,7 @@ abstract class ZetrixSDKExceptions with _$ZetrixSDKExceptions {
         return sdkExceptions;
       } on FormatException catch (e) {
         // Helper.printError(e.toString());
-        if (kDebugMode) {
-          print(e.toString());
-        }
+        Tools.logDebug(e.toString());
         return const ZetrixSDKExceptions.formatException();
       } catch (_) {
         return const ZetrixSDKExceptions.unexpectedError();
@@ -133,6 +161,11 @@ abstract class ZetrixSDKExceptions with _$ZetrixSDKExceptions {
     }
   }
 
+  /// Provides a user-friendly error message based on the type of [ZetrixSDKExceptions].
+  ///
+  /// This method takes an instance of [ZetrixSDKExceptions] and returns the corresponding
+  /// human-readable message. Each exception type is mapped to a specific message, which could
+  /// be displayed to the user or logged for debugging purposes.
   static String getErrorMessage(ZetrixSDKExceptions sdkExceptions) {
     if (sdkExceptions is NotImplemented) {
       return "Not Implemented";
