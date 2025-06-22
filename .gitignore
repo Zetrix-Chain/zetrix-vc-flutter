@@ -1,0 +1,108 @@
+# -----------------------
+# Dart / Flutter / Pub
+# -----------------------
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.fvm/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melody/
+.flutter-versions
+
+# Library rules
+pubspec.lock
+
+# API documentation
+**/doc/api/
+
+# -----------------------
+# Platform builds
+# -----------------------
+
+# Android
+android/.gradle/
+android/.idea/
+android/.cxx/
+android/app/debug
+android/app/release
+android/local.properties
+
+# iOS / macOS
+ios/Pods/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Runner.xcworkspace/
+macos/Flutter/
+macos/build/
+macos/Runner.xcworkspace/
+
+# Windows / Linux
+windows/build/
+linux/build/
+
+# -----------------------
+# IntelliJ / JetBrains
+# -----------------------
+*.iml
+.idea/
+.idea_modules/
+*.ipr
+*.iws
+
+# -----------------------
+# VS Code
+# -----------------------
+.vscode/launch.json
+.vscode/settings.json
+*.code-workspace
+
+# -----------------------
+# Test & coverage
+# -----------------------
+coverage/
+*.lcov
+test_output/
+
+# -----------------------
+# Miscellaneous
+# -----------------------
+*.log
+*.tmp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*.class
+*.pyc
+*.old
+*.backup
+*.tar.gz
+*.zip
+*.7z
+
+# OS-generated
+.DS_Store
+Thumbs.db
+
+# -----------------------
+# SVN / Legacy systems
+# -----------------------
+.svn/
+.atom/
+.history/
+.buildlog/
+
+# -----------------------
+# Keep These Files
+# -----------------------
+!pubspec.yaml
+!lib/
+!test/
+!example/
+!assets/
+!native_libs/    # If you store compiled .so/.a/.dylib here

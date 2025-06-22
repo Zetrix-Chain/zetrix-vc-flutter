@@ -1,0 +1,42 @@
+apply plugin: 'com.android.library'
+
+
+android {
+    namespace 'com.example.bbs'
+    compileSdk = 33
+
+    defaultConfig {
+        minSdk = 21
+        targetSdk = 33
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+
+    packagingOptions {
+        doNotStrip "**/armeabi-v7a/*.so"
+        doNotStrip "**/arm64-v8a/*.so"
+        doNotStrip "**/x86/*.so"
+        doNotStrip "**/x86_64/*.so"
+    }
+
+    // Optional: remove debug info if needed (not required but good for prod)
+    // buildTypes {
+    //     release {
+    //         minifyEnabled false
+    //         shrinkResources false
+    //         proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    //     }
+    // }
+}
+
+dependencies {
+    // (Usually empty for pure JNI plugin — or add external libs here if needed)
+}

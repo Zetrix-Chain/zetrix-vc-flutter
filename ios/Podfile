@@ -1,0 +1,10 @@
+platform :ios, '12.0'
+
+use_frameworks! # OR use_modular_headers!
+
+target 'Runner' do
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # Ensure pods for the plugin are used
+  install! 'cocoapods', :disable_input_output_paths => true
+end
