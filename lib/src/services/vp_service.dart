@@ -25,7 +25,7 @@ class ZetrixVpService {
 
     if (revealAttribute != null &&
         revealAttribute.isNotEmpty &&
-        (bbsSignature == null || bbsSignature.isEmpty)) {
+        bbsSignature.isEmpty) {
       throw ZetrixSDKResult.failure(error: DefaultError('vcUnsupportedBbs'));
     }
 
@@ -42,7 +42,7 @@ class ZetrixVpService {
       holder: holderDid,
     );
 
-    if (revealAttribute != null && revealAttribute!.isNotEmpty) {
+    if (revealAttribute != null && revealAttribute.isNotEmpty) {
       // Get BBS public key
       final publicKeyBytes = base58.decode(blsPublicKey.substring(1));
 
@@ -61,7 +61,7 @@ class ZetrixVpService {
       // Collect reveal indexes
       final revealIndex = <int>[];
 
-      for (final fullKey in revealAttribute!) {
+      for (final fullKey in revealAttribute) {
         if (!credentialKeys.contains(fullKey)) {
           throw ZetrixSDKResult.failure(
               error:
@@ -80,9 +80,9 @@ class ZetrixVpService {
       final proof = await bbs.setBbsBlsProofFFI(
         messages,
         publicKeyBytes,
-        bbsSignature!,
+        bbsSignature,
         revealIndex,
-        bbsVerificationMethod!,
+        bbsVerificationMethod,
       );
 
       // Update credentialSubject and proof
@@ -113,7 +113,7 @@ class ZetrixVpService {
 
     if (revealAttribute != null &&
         revealAttribute.isNotEmpty &&
-        (bbsSignature == null || bbsSignature.isEmpty)) {
+        bbsSignature.isEmpty) {
       throw ZetrixSDKResult.failure(error: DefaultError('vcUnsupportedBbs'));
     }
 
@@ -130,7 +130,7 @@ class ZetrixVpService {
       holder: holderDid,
     );
 
-    if (revealAttribute != null && revealAttribute!.isNotEmpty) {
+    if (revealAttribute != null && revealAttribute.isNotEmpty) {
       // Get BBS public key
       final publicKeyBytes = base58.decode(blsPublicKey.substring(1));
 
@@ -149,7 +149,7 @@ class ZetrixVpService {
       // Collect reveal indexes
       final revealIndex = <int>[];
 
-      for (final fullKey in revealAttribute!) {
+      for (final fullKey in revealAttribute) {
         if (!credentialKeys.contains(fullKey)) {
           throw ZetrixSDKResult.failure(
               error:
@@ -168,9 +168,9 @@ class ZetrixVpService {
       final proof = await bbs.setBbsBlsProofMC(
         messages,
         publicKeyBytes,
-        bbsSignature!,
+        bbsSignature,
         revealIndex,
-        bbsVerificationMethod!,
+        bbsVerificationMethod,
       );
 
       // Update credentialSubject and proof
