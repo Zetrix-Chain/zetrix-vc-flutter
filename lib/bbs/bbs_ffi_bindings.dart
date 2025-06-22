@@ -13,7 +13,6 @@ import 'bbs_ffi_types.dart';
 /// at runtime from a [DynamicLibrary]. Each native function is represented by a typedef
 /// indicating its signature and an associated Dart function for easier use.
 class BbsBindings {
-
   /// The loaded dynamic library containing the native BBS functions.
   final DynamicLibrary _lib;
 

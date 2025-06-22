@@ -1,3 +1,8 @@
+## 0.0.4
+
+### Update
+- Fix dart formatter
+
 ## 0.0.3
 
 ### Update
