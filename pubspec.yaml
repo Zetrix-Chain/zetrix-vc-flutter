@@ -1,6 +1,6 @@
 name: zetrix_vc_flutter
 description: Zetrix flutter SDK for Verifiable Credential (Verifiable Presentation)
-version: 0.0.2
+version: 0.0.3
 homepage: https://docs.zetrix.com/en
 repository: https://github.com/Zetrix-Chain/zetrix-vc-flutter
 
@@ -25,7 +25,7 @@ dependencies:
   flutter_rust_bridge: ^2.10.0
   collection: ^1.18.0
   path: ^1.9.1
-  archive: ^3.4.10
+  archive: ^4.0.7
 
 dev_dependencies:
 #  test: ^1.23.1

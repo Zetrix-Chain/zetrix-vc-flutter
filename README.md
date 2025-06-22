@@ -124,7 +124,6 @@ final proof = await createBbsProof({
 
 * [ ] iOS native integration (Obj-C/Swift + Rust static lib)
 * [ ] Fallback to Dart FFI for cross-platform consistency
-* [ ] Publish to pub.dev
 
 ---
 

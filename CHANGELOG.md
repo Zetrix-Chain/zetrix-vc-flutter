@@ -1,3 +1,8 @@
+## 0.0.3
+
+### Update
+- Upgrade package dependency
+
 ## 0.0.2
 
 ### Update
