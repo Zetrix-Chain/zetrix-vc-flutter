@@ -1,3 +1,8 @@
+## 0.0.5
+
+### Update
+- Change VP format from plain text to gzip compress
+
 ## 0.0.4
 
 ### Update

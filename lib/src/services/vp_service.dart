@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:bs58/bs58.dart';
 import 'package:zetrix_vc_flutter/src/models/proof_type_enum.dart';
 import 'package:zetrix_vc_flutter/src/models/vc/vc_constant.dart';
+import 'package:zetrix_vc_flutter/src/utils/encoding_utils.dart';
 import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 import 'package:zetrix_vc_flutter/zetrix_vc_flutter.dart';
 
@@ -193,8 +194,14 @@ class ZetrixVpService {
 
     final vcList = <VerifiableCredential>[vc];
     vp.verifiableCredential = vcList;
+
     var vpString = jsonEncode(vp.toJson());
     vpString = Helpers.extractMinimalVp(vpString);
-    return ZetrixSDKResult.success(data: vpString);
+
+    //Gzip compression
+    final compressed = EncodingUtils.compressJsonGzip(vpString);
+    final base64Compressed = base64.encode(compressed);
+
+    return ZetrixSDKResult.success(data: base64Compressed);
   }
 }
