@@ -27,6 +27,8 @@ DynamicLibrary loadBbsLib() {
   } else if (Platform.isMacOS) {
     // Load the macOS dynamic library.
     return DynamicLibrary.open('libbbs.dylib');
+  } else if (Platform.isIOS) {
+    return DynamicLibrary.process();
   } else if (Platform.isLinux) {
     // Load the Linux shared library.
     return DynamicLibrary.open('libbbs.so');

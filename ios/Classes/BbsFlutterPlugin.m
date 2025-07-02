@@ -1,277 +1,295 @@
 #import "BbsFlutterPlugin.h"
+#import "bbs_signature_proof.h"
+
+// ProofMessage interface declaration
+@interface ProofMessage : NSObject
+
+@property (nonatomic, assign) int type;
+@property (nonatomic, strong) NSData *message;
+@property (nonatomic, strong) NSData *blinding_factor;
+
+- (instancetype)initWithType:(int)type
+                    message:(NSData *)message
+                   blinding:(NSData *)blinding_factor;
+
+@end
+
+// ProofMessage implementation
+@implementation ProofMessage
+
+- (instancetype)initWithType:(int)type
+                    message:(NSData *)message
+                   blinding:(NSData *)blinding_factor {
+    self = [super init];
+    if (self) {
+        _type = type;
+        _message = message;
+        _blinding_factor = blinding_factor;
+    }
+    return self;
+}
+
+@end
+
+// Constants
+static const int PROOF_MESSAGE_TYPE_REVEALED = 1;
+static const int PROOF_MESSAGE_TYPE_HIDDEN_PROOF_SPECIFIC_BLINDING = 2;
+static const int PROOF_MESSAGE_TYPE_HIDDEN_EXTERNAL_BLINDING = 3;
 
 @implementation BbsFlutterPlugin
 
-+ (void)registerWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar {
-    FlutterMethodChannel *channel = [FlutterMethodChannel
-            methodChannelWithName:@"zetrix_bbs"
++ (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
+    FlutterMethodChannel* channel = [FlutterMethodChannel
+            methodChannelWithName:@"bbs_flutter"
                   binaryMessenger:[registrar messenger]];
-    BbsFlutterPlugin *instance = [[BbsFlutterPlugin alloc] init];
+    BbsFlutterPlugin* instance = [[BbsFlutterPlugin alloc] init];
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
-- (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
-    if ([@"blindCommitmentContextInit" isEqualToString:call.method]) {
-        [self blindCommitmentContextInit:result];
-    } else if ([@"blindCommitmentContextFinish" isEqualToString:call.method]) {
-        uint64_t handle = [call.arguments[@"handle"] unsignedLongLongValue];
-        [self blindCommitmentContextFinish:handle result:result];
-    } else if ([@"addMessageString" isEqualToString:call.method]) {
-        uint64_t handle = [call.arguments[@"handle"] unsignedLongLongValue];
-        uint32_t index = [call.arguments[@"index"] unsignedIntValue];
-        NSString *message = call.arguments[@"message"];
-        [self addMessageString:handle index:index message:message result:result];
-    } else if ([@"addMessageBytes" isEqualToString:call.method]) {
-        uint64_t handle = [call.arguments[@"handle"] unsignedLongLongValue];
-        uint32_t index = [call.arguments[@"index"] unsignedIntValue];
-        FlutterStandardTypedData *data = call.arguments[@"message"];
-        bbs_signature_byte_buffer_t buffer;
-        buffer.len = data.length;
-        buffer.data = (uint8_t * )
-        [data.data bytes];
-        [self addMessageBytes:handle index:index message:buffer result:result];
-    } else if ([@"setPublicKey" isEqualToString:call.method]) {
-        uint64_t handle = [call.arguments[@"handle"] unsignedLongLongValue];
-        FlutterStandardTypedData *data = call.arguments[@"publicKey"];
-        bbs_signature_byte_buffer_t publicKey;
-        publicKey.len = data.length;
-        publicKey.data = (uint8_t * )
-        [data.data bytes];
-        [self setPublicKey:handle publicKey:publicKey result:result];
+- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+    if ([@"blsCreateProof" isEqualToString:call.method]) {
+        [self blsCreateProof:call result:result];
     } else {
         result(FlutterMethodNotImplemented);
     }
 }
 
-// MARK: - BBS Library Wrappers
+// Add after your existing code but before @end
 
-- (void)blindCommitmentContextInit:(FlutterResult)result {
+- (NSData *)blsCreateProof:(NSData *)publicKey
+                    nonce:(NSData *)nonce
+               signature:(NSData *)signature
+                messages:(NSArray *)messages {
     bbs_signature_error_t error;
-    uint64_t handle = bbs_blind_commitment_context_init(&error);
-
-    if (handle == 0) {
-        if (error.message) {
-            result([FlutterError errorWithCode:[@(error.code) stringValue]
-                                       message:[NSString stringWithUTF8String:error.message]
-                                       details:nil]);
-            bbs_string_free(error.message);
-        } else {
-            result([FlutterError errorWithCode:@"UNKNOWN_ERROR"
-                                       message:@"Failed to initialize blind commitment context"
-                                       details:nil]);
-        }
-        return;
-    }
-
-    result(@(handle));
-}
-
-- (void)blindCommitmentContextFinish:(uint64_t)handle result:(FlutterResult)result {
-    bbs_signature_byte_buffer_t commitment;
-    bbs_signature_byte_buffer_t outContext;
-    bbs_signature_byte_buffer_t blindingFactor;
-    bbs_signature_error_t error;
-
-    int32_t status = bbs_blind_commitment_context_finish(handle, &commitment, &outContext,
-                                                         &blindingFactor, &error);
-    if (status != 0) {
-        if (error.message) {
-            result([FlutterError errorWithCode:[@(error.code) stringValue]
-                                       message:[NSString stringWithUTF8String:error.message]
-                                       details:nil]);
-            bbs_string_free(error.message);
-        } else {
-            result([FlutterError errorWithCode:@"UNKNOWN_ERROR"
-                                       message:@"Failed to finish blind commitment context"
-                                       details:nil]);
-        }
-        return;
-    }
-
-    NSDictionary *response = @{
-            @"commitment": [FlutterStandardTypedData typedDataWithBytes:[NSData dataWithBytes:commitment.data length:commitment.len]],
-            @"outContext": [FlutterStandardTypedData typedDataWithBytes:[NSData dataWithBytes:outContext.data length:outContext.len]],
-            @"blindingFactor": [FlutterStandardTypedData typedDataWithBytes:[NSData dataWithBytes:blindingFactor.data length:blindingFactor.len]]
+    
+    // Convert public key to BBS public key
+    bbs_signature_byte_buffer_t bbsPublicKeyBuffer;
+    bbs_signature_byte_buffer_t inputPubKey = {
+        .data = (uint8_t *)publicKey.bytes,
+        .len = publicKey.length
     };
-
-    // Free allocated memory
-    bbs_byte_buffer_free(commitment);
-    bbs_byte_buffer_free(outContext);
-    bbs_byte_buffer_free(blindingFactor);
-
-    result(response);
+    
+    if (bls_public_key_to_bbs_key(inputPubKey, (uint32_t)messages.count, &bbsPublicKeyBuffer, &error) != 0) {
+        NSString *errorMsg = error.message ? @(error.message) : @"Unable to convert public key";
+        @throw [NSException exceptionWithName:@"BBSError" reason:errorMsg userInfo:nil];
+    }
+    
+    // Initialize proof context
+    uint64_t handle = bbs_create_proof_context_init(&error);
+    if (handle == 0) {
+        @throw [NSException exceptionWithName:@"BBSError"
+                                    reason:@"Unable to create proof context"
+                                  userInfo:nil];
+    }
+    
+    // Set public key
+    if (bbs_create_proof_context_set_public_key(handle, bbsPublicKeyBuffer, &error) != 0) {
+        bbs_byte_buffer_free(bbsPublicKeyBuffer);
+        @throw [NSException exceptionWithName:@"BBSError"
+                                    reason:@"Unable to set public key"
+                                  userInfo:nil];
+    }
+    
+    // Set nonce
+    bbs_signature_byte_buffer_t nonceBuffer = {
+        .data = (uint8_t *)nonce.bytes,
+        .len = nonce.length
+    };
+    if (bbs_create_proof_context_set_nonce_bytes(handle, nonceBuffer, &error) != 0) {
+        bbs_byte_buffer_free(bbsPublicKeyBuffer);
+        @throw [NSException exceptionWithName:@"BBSError"
+                                    reason:@"Unable to set nonce"
+                                  userInfo:nil];
+    }
+    
+    // Set signature
+    bbs_signature_byte_buffer_t sigBuffer = {
+        .data = (uint8_t *)signature.bytes,
+        .len = signature.length
+    };
+    if (bbs_create_proof_context_set_signature(handle, sigBuffer, &error) != 0) {
+        bbs_byte_buffer_free(bbsPublicKeyBuffer);
+        @throw [NSException exceptionWithName:@"BBSError"
+                                    reason:@"Unable to set signature"
+                                  userInfo:nil];
+    }
+    
+    // Add messages
+    for (ProofMessage *msg in messages) {
+        bbs_signature_byte_buffer_t msgBuffer = {
+            .data = (uint8_t *)msg.message.bytes,
+            .len = msg.message.length
+        };
+        bbs_signature_byte_buffer_t blindBuffer = {
+            .data = (uint8_t *)msg.blinding_factor.bytes,
+            .len = msg.blinding_factor.length
+        };
+        
+        if (bbs_create_proof_context_add_proof_message_bytes(handle, msgBuffer, msg.type, blindBuffer, &error) != 0) {
+            bbs_byte_buffer_free(bbsPublicKeyBuffer);
+            @throw [NSException exceptionWithName:@"BBSError"
+                                        reason:@"Unable to add proof message"
+                                      userInfo:nil];
+        }
+    }
+    
+    // Finish and get proof
+    bbs_signature_byte_buffer_t proofBuffer;
+    if (bbs_create_proof_context_finish(handle, &proofBuffer, &error) != 0) {
+        bbs_byte_buffer_free(bbsPublicKeyBuffer);
+        @throw [NSException exceptionWithName:@"BBSError"
+                                    reason:@"Unable to create proof"
+                                  userInfo:nil];
+    }
+    
+    // Convert to NSData and clean up
+    NSData *proof = [NSData dataWithBytes:proofBuffer.data length:proofBuffer.len];
+    bbs_byte_buffer_free(proofBuffer);
+    bbs_byte_buffer_free(bbsPublicKeyBuffer);
+    
+    return proof;
 }
 
-- (void)addMessageString:(uint64_t)handle index:(uint32_t)index message:(NSString *_Nullable)message result:(FlutterResult)result {
-    bbs_signature_error_t error;
-    const char *cMessage = [message UTF8String];
-    int32_t status = bbs_blind_commitment_context_add_message_string(handle, index, cMessage,
-                                                                     &error);
+- (void)blsCreateProof:(FlutterMethodCall*)call result:(FlutterResult)result {
+    @try {
+        NSDictionary *args = call.arguments;
 
-    if (status != 0) {
-        if (error.message) {
-            result([FlutterError errorWithCode:[@(error.code) stringValue]
-                                       message:[NSString stringWithUTF8String:error.message]
-                                       details:nil]);
-            bbs_string_free(error.message);
+        id publicKeyObject = args[@"publicKey"];
+
+        NSData *publicKey = nil;
+
+        if ([publicKeyObject isKindOfClass:[FlutterStandardTypedData class]]) {
+            FlutterStandardTypedData *flutterData = (FlutterStandardTypedData *)publicKeyObject;
+            publicKey = flutterData.data; // Access the .data property
+            NSLog(@"Successfully extracted NSData from FlutterStandardTypedData. Length: %lu", (unsigned long)publicKey.length);
+        } else if ([publicKeyObject isKindOfClass:[NSArray class]]) {
+            // This is your OLD way, keep it if some calls might still send a list of numbers
+            NSLog(@"Warning: publicKey received as NSArray, converting using byteListToArray. This might be an older data format.");
+            publicKey = [self byteListToArray:(NSArray<NSNumber *> *)publicKeyObject];
+        } else if (publicKeyObject) {
+            // Handle other unexpected types or log an error
+            NSLog(@"Error: publicKey is of unexpected type: %@", [publicKeyObject class]);
         } else {
-            result([FlutterError errorWithCode:@"UNKNOWN_ERROR"
-                                       message:@"Failed to add message string to context"
-                                       details:nil]);
+            NSLog(@"Error: publicKey is nil in args.");
         }
-        return;
-    }
 
-    result(@(status));
-}
+        id nonceObject = args[@"nonce"];
 
-- (void)addMessageBytes:(uint64_t)handle
-                  index:(uint32_t)index
-                message:(bbs_signature_byte_buffer_t)message
-                 result:(FlutterResult)result {
-    bbs_signature_error_t error;
-    int32_t status = bbs_blind_commitment_context_add_message_bytes(handle, index, message, &error);
+        NSData *nonce = nil;
 
-    if (status != 0) {
-        if (error.message) {
-            result([FlutterError errorWithCode:[@(error.code) stringValue]
-                                       message:[NSString stringWithUTF8String:error.message]
-                                       details:nil]);
-            bbs_string_free(error.message);
+        if ([nonceObject isKindOfClass:[FlutterStandardTypedData class]]) {
+            FlutterStandardTypedData *flutterData = (FlutterStandardTypedData *)nonceObject;
+            nonce = flutterData.data; // Access the .data property
+            NSLog(@"Successfully extracted NSData from FlutterStandardTypedData. Length: %lu", (unsigned long)nonce.length);
+        } else if ([nonceObject isKindOfClass:[NSArray class]]) {
+            // This is your OLD way, keep it if some calls might still send a list of numbers
+            NSLog(@"Warning: nonce received as NSArray, converting using byteListToArray. This might be an older data format.");
+            nonce = [self byteListToArray:(NSArray<NSNumber *> *)nonceObject];
+        } else if (nonceObject) {
+            // Handle other unexpected types or log an error
+            NSLog(@"Error: nonce is of unexpected type: %@", [nonceObject class]);
         } else {
-            result([FlutterError errorWithCode:@"UNKNOWN_ERROR"
-                                       message:@"Failed to add message bytes to context"
-                                       details:nil]);
+            NSLog(@"Error: nonce is nil in args.");
         }
-        return;
-    }
 
-    result(@(status));
-}
+        id signatureObject = args[@"signature"];
 
-- (void)setPublicKey:(uint64_t)handle
-           publicKey:(bbs_signature_byte_buffer_t)publicKey
-              result:(FlutterResult)result {
-    bbs_signature_error_t error;
-    int32_t status = bbs_blind_commitment_context_set_public_key(handle, publicKey, &error);
+        NSData *signature = nil;
 
-    if (status != 0) {
-        if (error.message) {
-            result([FlutterError errorWithCode:[@(error.code) stringValue]
-                                       message:[NSString stringWithUTF8String:error.message]
-                                       details:nil]);
-            bbs_string_free(error.message);
+        if ([signatureObject isKindOfClass:[FlutterStandardTypedData class]]) {
+            FlutterStandardTypedData *flutterData = (FlutterStandardTypedData *)signatureObject;
+            signature = flutterData.data; // Access the .data property
+            NSLog(@"Successfully extracted NSData from FlutterStandardTypedData. Length: %lu", (unsigned long)signature.length);
+        } else if ([signatureObject isKindOfClass:[NSArray class]]) {
+            // This is your OLD way, keep it if some calls might still send a list of numbers
+            NSLog(@"Warning: signature received as NSArray, converting using byteListToArray. This might be an older data format.");
+            signature = [self byteListToArray:(NSArray<NSNumber *> *)signatureObject];
+        } else if (signatureObject) {
+            // Handle other unexpected types or log an error
+            NSLog(@"Error: signature is of unexpected type: %@", [signatureObject class]);
         } else {
-            result([FlutterError errorWithCode:@"UNKNOWN_ERROR"
-                                       message:@"Failed to set public key for context"
-                                       details:nil]);
+            NSLog(@"Error: signature is nil in args.");
         }
-        return;
-    }
 
-    result(@(status));
-}
+        NSArray *msgList = args[@"messages"];
 
-// MARK: Create BBS Signature
-- (void)createBbsSignature:(NSArray *_Nonnull)messages
-                   keyPair:(NSDictionary *_Nonnull)keyPair
-                    result:(FlutterResult)result {
-    @try {
-        BbsKeyPair *bbsKeyPair = [[BbsKeyPair alloc] initWithPublicKey:keyPair[@"publicKey"]
-                                                            privateKey:keyPair[@"privateKey"]];
-        BbsSignature *signature = [[BbsSignature alloc] sign:bbsKeyPair
-                                                    messages:messages
-                                                   withError:nil];
-        if (!signature) {
-            result([FlutterError errorWithCode:@"ERROR"
-                                       message:@"Failed to create BBS signature."
-                                       details:nil]);
-            return;
+        NSMutableArray *messages = [NSMutableArray arrayWithCapacity:msgList.count];
+        for (NSDictionary *msg in msgList) {
+
+            id messageObject = msg[@"message"];
+
+            NSData *message = nil;
+
+            if ([messageObject isKindOfClass:[FlutterStandardTypedData class]]) {
+                FlutterStandardTypedData *flutterData = (FlutterStandardTypedData *)messageObject;
+                message = flutterData.data; // Access the .data property
+                NSLog(@"Successfully extracted NSData from FlutterStandardTypedData. Length: %lu", (unsigned long)message.length);
+            } else if ([messageObject isKindOfClass:[NSArray class]]) {
+                // This is your OLD way, keep it if some calls might still send a list of numbers
+                NSLog(@"Warning: message received as NSArray, converting using byteListToArray. This might be an older data format.");
+                message = [self byteListToArray:(NSArray<NSNumber *> *)messageObject];
+            } else if (messageObject) {
+                // Handle other unexpected types or log an error
+                NSLog(@"Error: message is of unexpected type: %@", [messageObject class]);
+            } else {
+                NSLog(@"Error: message is nil in args.");
+            }
+
+            id blindingFactorObject = msg[@"blinding_factor"];
+
+            NSData *blindingFactor = nil;
+
+            if ([blindingFactorObject isKindOfClass:[FlutterStandardTypedData class]]) {
+                FlutterStandardTypedData *flutterData = (FlutterStandardTypedData *)blindingFactorObject;
+                blindingFactor = flutterData.data; // Access the .data property
+                NSLog(@"Successfully extracted NSData from FlutterStandardTypedData. Length: %lu", (unsigned long)blindingFactor.length);
+            } else if ([blindingFactorObject isKindOfClass:[NSArray class]]) {
+                // This is your OLD way, keep it if some calls might still send a list of numbers
+                NSLog(@"Warning: blindingFactor received as NSArray, converting using byteListToArray. This might be an older data format.");
+                blindingFactor = [self byteListToArray:(NSArray<NSNumber *> *)blindingFactorObject];
+            } else if (blindingFactorObject) {
+                // Handle other unexpected types or log an error
+                NSLog(@"Error: blindingFactor is of unexpected type: %@", [blindingFactorObject class]);
+            } else {
+                NSLog(@"Error: blindingFactor is nil in args.");
+            }
+
+            ProofMessage *proofMsg = [[ProofMessage alloc] initWithType:[msg[@"type"] intValue]
+                                                              message:message
+                                                             blinding:blindingFactor];
+            [messages addObject:proofMsg];
         }
-        result(signature.value);
-    }
-    @catch (NSException *exception) {
-        result([FlutterError errorWithCode:@"EXCEPTION"
-                                   message:exception.reason
-                                   details:nil]);
+
+        NSData *proof = [self blsCreateProof:publicKey
+                                     nonce:nonce
+                                signature:signature
+                                 messages:messages];
+        result([self toList:proof]);
+    } @catch (NSException *exception) {
+        result([FlutterError errorWithCode:@"BLS_CREATE_PROOF_FAILED"
+                                 message:exception.reason
+                                 details:nil]);
     }
 }
 
-// MARK: Verify BBS Signature
-- (void)verifyBbsSignature:(NSDictionary *_Nonnull)keyPair
-                  messages:(NSArray *_Nonnull)messages
-                 signature:(NSData *_Nonnull)signature
-                    result:(FlutterResult)result {
-    @try {
-        BbsKeyPair *bbsKeyPair = [[BbsKeyPair alloc] initWithPublicKey:keyPair[@"publicKey"]
-                                                            privateKey:nil];
-        BbsSignature *bbsSignature = [[BbsSignature alloc] initWithBytes:signature withError:nil];
-        bool isValid = [bbsSignature verify:bbsKeyPair
-                                   messages:messages
-                                  withError:nil];
-        result(@(isValid));
+#pragma mark - Helper Methods
+
+- (NSArray<NSNumber *> *)toList:(NSData *)data {
+    NSMutableArray<NSNumber *> *list = [NSMutableArray arrayWithCapacity:data.length];
+    const uint8_t *bytes = data.bytes;
+    for (NSUInteger i = 0; i < data.length; i++) {
+        [list addObject:@(bytes[i] & 0xFF)];
     }
-    @catch (NSException *exception) {
-        result([FlutterError errorWithCode:@"EXCEPTION"
-                                   message:exception.reason
-                                   details:nil]);
-    }
+    return list;
 }
 
-// MARK: Create BBS Signature Proof
-- (void)createBbsSignatureProof:(NSData *_Nonnull)signature
-                        keyPair:(NSDictionary *_Nonnull)keyPair
-                          nonce:(NSData *_Nonnull)nonce
-                       messages:(NSArray *_Nonnull)messages
-                       revealed:(NSArray *_Nonnull)revealed
-                         result:(FlutterResult)result {
-    @try {
-        BbsKeyPair *bbsKeyPair = [[BbsKeyPair alloc] initWithPublicKey:keyPair[@"publicKey"]
-                                                            privateKey:keyPair[@"privateKey"]];
-        BbsSignature *bbsSignature = [[BbsSignature alloc] initWithBytes:signature withError:nil];
-        BbsSignatureProof *proof = [[BbsSignatureProof alloc] createProof:bbsSignature
-                                                                  keyPair:bbsKeyPair
-                                                                    nonce:nonce
-                                                                 messages:messages
-                                                                 revealed:revealed
-                                                                withError:nil];
-        if (!proof) {
-            result([FlutterError errorWithCode:@"ERROR"
-                                       message:@"Failed to create BBS signature proof."
-                                       details:nil]);
-            return;
-        }
-        result(proof.value);
+- (NSData *)byteListToArray:(NSArray<NSNumber *> *)list {
+    NSMutableData *data = [NSMutableData dataWithCapacity:list.count];
+    for (NSNumber *num in list) {
+        uint8_t byte = num.unsignedCharValue;
+        [data appendBytes:&byte length:1];
     }
-    @catch (NSException *exception) {
-        result([FlutterError errorWithCode:@"EXCEPTION"
-                                   message:exception.reason
-                                   details:nil]);
-    }
+    return data;
 }
-
-// MARK: Verify BBS Signature Proof
-- (void)verifyBbsSignatureProof:(NSDictionary *_Nonnull)keyPair
-                       messages:(NSArray *_Nonnull)messages
-                          nonce:(NSData *_Nonnull)nonce
-                          proof:(NSData *_Nonnull)proof
-                         result:(FlutterResult)result {
-    @try {
-        BbsKeyPair *bbsKeyPair = [[BbsKeyPair alloc] initWithPublicKey:keyPair[@"publicKey"]
-                                                            privateKey:nil];
-        BbsSignatureProof *signatureProof = [[BbsSignatureProof alloc] initWithBytes:proof withError:nil];
-        bool isValid = [signatureProof verifyProof:bbsKeyPair
-                                          messages:messages
-                                             nonce:nonce
-                                         withError:nil];
-        result(@(isValid));
-    }
-    @catch (NSException *exception) {
-        result([FlutterError errorWithCode:@"EXCEPTION"
-                                   message:exception.reason
-                                   details:nil]);
-    }
-}
-
 
 @end
