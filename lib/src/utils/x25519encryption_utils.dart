@@ -220,8 +220,8 @@ Uint8List aesKeyWrap(Uint8List kek, Uint8List cek) {
   if (kek.length != 32) {
     throw ArgumentError('KEK must be 32 bytes (256-bit).');
   }
-  if (cek.length % 8 != 0) {
-    throw ArgumentError('CEK length must be multiple of 8 bytes.');
+  if (cek.length != 32) {
+    throw ArgumentError('CEK must be 32 bytes (256-bit).');
   }
 
   final cipher = pc.ECBBlockCipher(pc.AESEngine());

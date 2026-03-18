@@ -1,3 +1,6 @@
+@Skip('Requires native library (libbbs.so) - run on Android/iOS device')
+library;
+
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
@@ -12,7 +15,20 @@ import 'package:zetrix_vc_flutter/src/models/bbs/proof_message.dart';
 import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 
 void main() {
-  final bbs = BbsBindings(loadBbsLib());
+  late final BbsBindings bbs;
+  String? _skipReason;
+
+  setUpAll(() {
+    try {
+      bbs = BbsBindings(loadBbsLib());
+    } catch (e) {
+      _skipReason = 'Native library not available: $e';
+    }
+  });
+
+  setUp(() {
+    if (_skipReason != null) markTestSkipped(_skipReason!);
+  });
 
   test('Generate BLS G2 keypair', () {
     final seedBytes = Uint8List.fromList(utf8
