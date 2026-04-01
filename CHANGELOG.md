@@ -1,3 +1,9 @@
+## 0.0.9
+
+### Fix
+- Fix alphabetical reordering for return data
+- Fix createVPFromDCQL remove required bbsPrivateKey for WalletKeyMaterial
+
 ## 0.0.8
 
 ### Fix
