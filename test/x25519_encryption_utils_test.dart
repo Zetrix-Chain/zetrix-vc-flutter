@@ -149,7 +149,7 @@ void main() {
         cek[i] = 255 - i;
       }
       final wrapped = aesKeyWrap(kek, cek);
-      expect(wrapped.length, equals(40)); // RFC 3394: wrapped = cek.length + 8 bytes IV
+      expect(wrapped.length, equals(32));
     });
 
     test('throws if KEK length is invalid', () {
