@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:/Users/izzatur.makhizu/Desktop/Zetrix/Source Code/zetrix-vc-flutter-1\" remote -v)",
+      "Bash(git -C \"C:/Users/izzatur.makhizu/Desktop/Zetrix/Source Code/zetrix-vc-flutter-1\" log --oneline -5)",
+      "Bash(git -C \"C:/Users/izzatur.makhizu/Desktop/Zetrix/Source Code/zetrix-vc-flutter\" branch -a)",
+      "Bash(git -C \"C:/Users/izzatur.makhizu/Desktop/Zetrix/Source Code/zetrix-vc-flutter\" log --oneline -10 --all)",
+      "Bash(git -C \"C:/Users/izzatur.makhizu/Desktop/Zetrix/Source Code/zetrix-vc-flutter\" log --oneline origin/main)"
+    ]
+  }
+}

@@ -1,10 +1,6 @@
-@Skip('Requires native library (libbbs.so) - run on Android/iOS device')
-library;
-
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zetrix_vc_flutter/bbs/load_library.dart';
 import 'package:zetrix_vc_flutter/src/models/vc/verifiable_credential.dart';
 import 'package:zetrix_vc_flutter/src/services/vp_service.dart';
 import 'package:zetrix_vc_flutter/src/models/sdk_result.dart';
@@ -12,26 +8,9 @@ import 'package:zetrix_vc_flutter/src/utils/tools.dart';
 
 void main() {
   ZetrixVpService zetrixVpService = ZetrixVpService();
-  String? _skipReason;
-
-  setUpAll(() {
-    try {
-      loadBbsLib();
-    } catch (e) {
-      _skipReason = 'Native library not available: $e';
-    }
-  });
-
-  setUp(() {
-    if (_skipReason != null) markTestSkipped(_skipReason!);
-  });
 
   test('should return success with base64 encoded VP using method channel',
       () async {
-    if (_skipReason != null) {
-      markTestSkipped(_skipReason!);
-      return;
-    }
     final vcJson = '''{
             "id": "did:zid:6601378b18e96707d25b2070fd7125549ece3f2e3ad4b5e1dda67d262975ba4f",
             "type": [

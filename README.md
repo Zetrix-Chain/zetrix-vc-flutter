@@ -183,7 +183,6 @@ print('Valid: $isValid');  // true, actual age stays secret!
 * [ ] Fallback to Dart FFI for cross-platform consistency
 
 ---
-
 ## 💪 Build Notes
 
 To rebuild the plugin after modifying native libs:

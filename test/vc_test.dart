@@ -81,7 +81,7 @@ void main() async {
             signData.signBlob!);
     // expect(vp, isNotNull);
     final result = await zetrixVcService.downloadVc(reqDto);
-    if (result is Success<DownloadVcResponse>) {
+    if (result is Success<VerifiableCredential>) {
       Tools.logDebug(result.data?.toJson());
     } else if (result is Failure) {
       Tools.logDebug(result);

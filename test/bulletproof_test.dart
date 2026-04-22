@@ -1,6 +1,3 @@
-@Skip('Requires native library (libbulletproof.so) - run on Android/iOS device')
-library;
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zetrix_vc_flutter/zetrix_vc_flutter.dart';
 import 'package:zetrix_vc_flutter/frb_generated.dart';
@@ -9,19 +6,12 @@ import 'package:zetrix_vc_flutter/frb_generated.dart';
 /// Matches Java BulletProofUtil test cases
 void main() {
   late BulletproofService service;
-  String? _skipReason;
 
   setUpAll(() async {
-    try {
-      await RustLib.init();
-      service = BulletproofService();
-    } catch (e) {
-      _skipReason = 'Native library not available: $e';
-    }
-  });
-
-  setUp(() {
-    if (_skipReason != null) markTestSkipped(_skipReason!);
+    // Initialize Rust bridge
+    await RustLib.init();
+    // Initialize service
+    service = BulletproofService();
   });
 
   group('Bulletproof Utility Tests', () {

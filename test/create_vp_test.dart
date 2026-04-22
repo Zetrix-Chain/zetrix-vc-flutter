@@ -1,6 +1,3 @@
-@Skip('Requires network and native libraries - run on Android/iOS device')
-library;
-
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -32,15 +29,15 @@ void main() {
     );
 
     // Assert result is success and contains VP JSON
-    if (result is Success<String>) {
-      final data = result.data;
-      expect(data, isNotNull);
-      final vpJson = jsonDecode(data!);
-      expect(vpJson['holder'], 'did:example:holder');
-      expect(vpJson['verifiableCredential'], isNotNull);
-      expect(vpJson['@context'], isNotNull);
-    } else if (result is Failure<String>) {
-      fail('createVp failed: ${result.error}');
-    }
+    result.when(
+      success: (data) {
+        expect(data, isNotNull);
+        final vpJson = jsonDecode(data!);
+        expect(vpJson['holder'], 'did:example:holder');
+        expect(vpJson['verifiableCredential'], isNotNull);
+        expect(vpJson['@context'], isNotNull);
+      },
+      failure: (error) => fail('createVp failed: $error'),
+    );
   });
 }
